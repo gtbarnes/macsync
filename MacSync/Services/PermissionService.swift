@@ -13,11 +13,37 @@ final class PermissionService: @unchecked Sendable {
 
     // MARK: - Full Disk Access
 
-    /// Tests whether the app has Full Disk Access by probing a protected path.
+    /// Tests whether the app has Full Disk Access by probing TCC-protected paths.
+    /// Returns true if ANY protected path is readable (FDA is granted).
+    /// Returns true if NO protected paths exist (can't determine — assume OK).
     /// Call from a background thread — this performs blocking I/O.
     nonisolated func hasFullDiskAccess() -> Bool {
-        let testPath = NSHomeDirectory() + "/Library/Mail"
-        return FileManager.default.isReadableFile(atPath: testPath)
+        let fm = FileManager.default
+        // Try multiple TCC-protected paths; not all exist on every machine.
+        let protectedPaths = [
+            NSHomeDirectory() + "/Library/Mail",
+            NSHomeDirectory() + "/Library/Safari",
+            NSHomeDirectory() + "/Library/Messages",
+            NSHomeDirectory() + "/Library/Application Support/com.apple.TCC",
+        ]
+
+        var testedAny = false
+        for path in protectedPaths {
+            // Only test paths that actually exist as directories
+            var isDir: ObjCBool = false
+            guard fm.fileExists(atPath: path, isDirectory: &isDir), isDir.boolValue else { continue }
+            testedAny = true
+            // If we can read even one protected path, FDA is granted
+            if fm.isReadableFile(atPath: path) {
+                return true
+            }
+        }
+
+        // If no protected paths exist on this machine, we can't determine FDA status.
+        // Don't nag the user — assume they have access until an actual operation fails.
+        if !testedAny { return true }
+
+        return false
     }
 
     /// Checks if a specific path is accessible for its role.

@@ -6,10 +6,11 @@ enum RsyncOutputParser {
 
     /// Parse rsync `--itemize-changes` output into FileAction array.
     ///
-    /// Format: `YXcstpoguax path/to/file`
+    /// Supports both GNU rsync (11-char flags) and macOS openrsync (9-char flags).
+    /// Format: `YXcstpoguax path/to/file` (GNU) or `YXcstpogx path/to/file` (openrsync)
     /// - Y = update type: `<` sent (copyRight), `>` received (copyLeft),
     ///   `.` attribute-only/equal, `*` message/deletion, `c` created
-    /// - The flags field is 11 characters wide, followed by a space, then the path.
+    /// - The flags field is followed by a space, then the path.
     static func parseItemizedChanges(_ output: String, syncMode: SyncMode) -> [FileAction] {
         var actions: [FileAction] = []
 
@@ -28,16 +29,15 @@ enum RsyncOutputParser {
                 continue
             }
 
-            // Standard itemized line: 11 char flags + space + path
-            // e.g. ">f.st...... some/file.txt"
-            guard trimmed.count > 12 else { continue }
-
-            let flagsEndIndex = trimmed.index(trimmed.startIndex, offsetBy: 11)
-            let flags = String(trimmed[trimmed.startIndex..<flagsEndIndex])
-            let path = String(trimmed[trimmed.index(after: flagsEndIndex)...])
+            // Detect flags field dynamically: flags are non-space characters before
+            // the first space. This handles both GNU rsync (11 chars) and openrsync (9 chars).
+            guard let spaceIndex = trimmed.firstIndex(of: " ") else { continue }
+            let flags = String(trimmed[trimmed.startIndex..<spaceIndex])
+            let path = String(trimmed[trimmed.index(after: spaceIndex)...])
                 .trimmingCharacters(in: .whitespaces)
 
-            guard !path.isEmpty else { continue }
+            // Flags must be at least 9 chars (openrsync minimum) and path must exist
+            guard flags.count >= 9, !path.isEmpty else { continue }
 
             let updateType = flags.first ?? "."
             let action: ActionType
@@ -54,13 +54,11 @@ enum RsyncOutputParser {
                 action = .copyRight
             case ".":
                 // Attribute-only change or already equal
-                // Check if any change flags are set (positions 2-10)
+                // Check if any change flags are set (after first 2 chars)
                 let changeFlags = String(flags.dropFirst(2))
                 if changeFlags.allSatisfy({ $0 == "." || $0 == " " }) {
-                    // Truly equal, skip or mark as equal
                     action = .equal
                 } else {
-                    // Attribute change only — treat as copy in the appropriate direction
                     action = .copyRight
                 }
             default:

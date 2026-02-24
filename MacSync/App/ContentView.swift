@@ -51,17 +51,6 @@ struct ContentView: View {
         }
 
         ToolbarItem(placement: .automatic) {
-            HStack(spacing: 4) {
-                Text("Threads:")
-                    .font(.caption)
-                Stepper(value: $appState.globalThreadLimit, in: 1...32) {
-                    Text("\(appState.globalThreadLimit)")
-                        .monospacedDigit()
-                }
-            }
-        }
-
-        ToolbarItem(placement: .automatic) {
             Button {
                 appState.showInspector.toggle()
             } label: {
