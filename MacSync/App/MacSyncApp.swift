@@ -16,10 +16,8 @@ struct MacSyncApp: App {
             ContentView()
                 .environmentObject(appState)
                 .frame(minWidth: 900, minHeight: 600)
-                .onAppear {
-                    appState.initialize()
-                }
                 .task {
+                    appState.initialize()
                     await appState.checkPermissionsOnLaunch()
                 }
                 .alert("Full Disk Access Required", isPresented: $appState.showFullDiskAccessAlert) {

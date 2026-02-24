@@ -82,8 +82,12 @@ final class AppState: ObservableObject {
 
     // MARK: - Permissions
     func checkPermissionsOnLaunch() async {
-        let hasFDA = await PermissionService.shared.runFirstLaunchChecks()
+        // Run blocking I/O off the main thread
+        let hasFDA = await Task.detached(priority: .utility) {
+            await PermissionService.shared.runFirstLaunchChecks()
+        }.value
         if !hasFDA {
+            NSApp.activate(ignoringOtherApps: true)
             showFullDiskAccessAlert = true
         }
     }
