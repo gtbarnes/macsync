@@ -19,6 +19,10 @@ actor RsyncEngine {
     // MARK: - Preview (Dry Run)
 
     /// Runs rsync in dry-run mode and streams parsed FileAction results as they arrive.
+    ///
+    /// Uses a blocking read loop on a background thread instead of readabilityHandler
+    /// to avoid a race condition where terminationHandler can fire before
+    /// readabilityHandler processes pipe data, causing 0 results.
     func preview(profile: SyncProfile) -> AsyncThrowingStream<[FileAction], Error> {
         AsyncThrowingStream { continuation in
             let builder = RsyncCommandBuilder(profile: profile)
@@ -33,25 +37,37 @@ actor RsyncEngine {
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
 
-            // Serialize all pipe I/O on a dedicated serial queue to prevent data races.
-            // NSFileHandle's readabilityHandler can fire concurrently under heavy output,
-            // and terminationHandler runs on yet another queue.
-            let ioQueue = DispatchQueue(label: "com.macsync.preview.io")
-            var accumulatedActions: [FileAction] = []
-            var lineBuffer = ""
+            continuation.onTermination = { @Sendable _ in
+                if process.isRunning {
+                    process.terminate()
+                }
+            }
 
-            stdoutPipe.fileHandleForReading.readabilityHandler = { handle in
-                let data = handle.availableData
-                guard !data.isEmpty else { return }
-                guard let chunk = String(data: data, encoding: .utf8) else { return }
+            do {
+                try process.run()
+            } catch {
+                continuation.finish(throwing: RsyncError.processError(error.localizedDescription))
+                return
+            }
 
-                ioQueue.sync {
+            // Read stdout on a background thread. availableData blocks until
+            // data arrives or the pipe closes (EOF). This single-threaded approach
+            // guarantees all pipe data is consumed before we check the exit status.
+            DispatchQueue.global(qos: .userInitiated).async {
+                var accumulatedActions: [FileAction] = []
+                var lineBuffer = ""
+                let fileHandle = stdoutPipe.fileHandleForReading
+
+                // Read until EOF (pipe closed when process exits)
+                while true {
+                    let data = fileHandle.availableData
+                    if data.isEmpty { break } // EOF — process closed stdout
+                    guard let chunk = String(data: data, encoding: .utf8) else { continue }
+
                     lineBuffer += chunk
                     let lines = lineBuffer.components(separatedBy: "\n")
-                    // Keep the last partial line in the buffer
                     lineBuffer = lines.last ?? ""
 
-                    // Parse all complete lines
                     let completeLines = lines.dropLast()
                     for line in completeLines {
                         let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -64,24 +80,21 @@ actor RsyncEngine {
                         }
                     }
                 }
-            }
 
-            process.terminationHandler = { proc in
-                ioQueue.sync {
-                    // Process any remaining buffered line
-                    let remaining = lineBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
-                    if !remaining.isEmpty {
-                        let parsed = RsyncOutputParser.parseItemizedChanges(remaining, syncMode: profile.syncMode)
-                        if !parsed.isEmpty {
-                            accumulatedActions.append(contentsOf: parsed)
-                            continuation.yield(accumulatedActions)
-                        }
+                // Process any remaining partial line in the buffer
+                let remaining = lineBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !remaining.isEmpty {
+                    let parsed = RsyncOutputParser.parseItemizedChanges(remaining, syncMode: profile.syncMode)
+                    if !parsed.isEmpty {
+                        accumulatedActions.append(contentsOf: parsed)
+                        continuation.yield(accumulatedActions)
                     }
                 }
 
-                stdoutPipe.fileHandleForReading.readabilityHandler = nil
+                // All pipe data is consumed. Wait for process to fully exit.
+                process.waitUntilExit()
 
-                if proc.terminationStatus == 0 {
+                if process.terminationStatus == 0 {
                     continuation.finish()
                 } else {
                     let errorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
@@ -93,18 +106,6 @@ actor RsyncEngine {
                         continuation.finish(throwing: RsyncError.processError(errorMessage))
                     }
                 }
-            }
-
-            continuation.onTermination = { @Sendable _ in
-                if process.isRunning {
-                    process.terminate()
-                }
-            }
-
-            do {
-                try process.run()
-            } catch {
-                continuation.finish(throwing: RsyncError.processError(error.localizedDescription))
             }
         }
     }
@@ -147,38 +148,35 @@ actor RsyncEngine {
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
 
-        // Serialize readability handler access to the mutable progress struct.
-        let ioQueue = DispatchQueue(label: "com.macsync.sync.single.io")
         var progress = SyncProgress()
         progress.startTime = Date()
 
-        stdoutPipe.fileHandleForReading.readabilityHandler = { handle in
-            let data = handle.availableData
-            guard !data.isEmpty,
-                  let line = String(data: data, encoding: .utf8) else { return }
-
-            if let parsed = RsyncOutputParser.parseProgress(line) {
-                ioQueue.sync {
-                    progress.transferredBytes = parsed.bytesTransferred
-                    progress.currentSpeed = parsed.speed
-                    progress.smoothedSpeed = 0.8 * progress.smoothedSpeed + 0.2 * parsed.speed
-                    let snapshot = progress
-                    // Call onProgress outside the lock scope is fine since snapshot is a value copy.
-                    onProgress(snapshot)
-                }
-            }
-        }
-
         try process.run()
 
-        // Wait for process to finish
+        // Read stdout on a background thread using a blocking loop.
+        // Same pattern as preview() — avoids readabilityHandler/terminationHandler race.
         return try await withCheckedThrowingContinuation { continuation in
-            process.terminationHandler = { proc in
-                stdoutPipe.fileHandleForReading.readabilityHandler = nil
+            DispatchQueue.global(qos: .userInitiated).async {
+                let fileHandle = stdoutPipe.fileHandleForReading
 
-                if proc.terminationStatus == 0 {
-                    continuation.resume(returning: [proc])
-                } else if proc.terminationStatus == 20 {
+                while true {
+                    let data = fileHandle.availableData
+                    if data.isEmpty { break }
+                    guard let line = String(data: data, encoding: .utf8) else { continue }
+
+                    if let parsed = RsyncOutputParser.parseProgress(line) {
+                        progress.transferredBytes = parsed.bytesTransferred
+                        progress.currentSpeed = parsed.speed
+                        progress.smoothedSpeed = 0.8 * progress.smoothedSpeed + 0.2 * parsed.speed
+                        onProgress(progress)
+                    }
+                }
+
+                process.waitUntilExit()
+
+                if process.terminationStatus == 0 {
+                    continuation.resume(returning: [process])
+                } else if process.terminationStatus == 20 {
                     continuation.resume(throwing: RsyncError.cancelled)
                 } else {
                     let errorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
@@ -225,23 +223,6 @@ actor RsyncEngine {
                     process.standardOutput = stdoutPipe
                     process.standardError = stderrPipe
 
-                    stdoutPipe.fileHandleForReading.readabilityHandler = { handle in
-                        let data = handle.availableData
-                        guard !data.isEmpty,
-                              let line = String(data: data, encoding: .utf8) else { return }
-
-                        if let parsed = RsyncOutputParser.parseProgress(line) {
-                            progressLock.lock()
-                            aggregatedProgress.transferredBytes += parsed.bytesTransferred
-                            aggregatedProgress.currentSpeed = parsed.speed
-                            aggregatedProgress.smoothedSpeed =
-                                0.8 * aggregatedProgress.smoothedSpeed + 0.2 * parsed.speed
-                            let snapshot = aggregatedProgress
-                            progressLock.unlock()
-                            onProgress(snapshot)
-                        }
-                    }
-
                     // Track this process
                     processesLock.lock()
                     allProcesses.append(process)
@@ -249,16 +230,36 @@ actor RsyncEngine {
 
                     try process.run()
 
+                    // Blocking read loop — same pattern as preview() and runSingleSync().
                     return try await withCheckedThrowingContinuation { continuation in
-                        process.terminationHandler = { proc in
-                            stdoutPipe.fileHandleForReading.readabilityHandler = nil
+                        DispatchQueue.global(qos: .userInitiated).async {
+                            let fileHandle = stdoutPipe.fileHandleForReading
+
+                            while true {
+                                let data = fileHandle.availableData
+                                if data.isEmpty { break }
+                                guard let line = String(data: data, encoding: .utf8) else { continue }
+
+                                if let parsed = RsyncOutputParser.parseProgress(line) {
+                                    progressLock.lock()
+                                    aggregatedProgress.transferredBytes += parsed.bytesTransferred
+                                    aggregatedProgress.currentSpeed = parsed.speed
+                                    aggregatedProgress.smoothedSpeed =
+                                        0.8 * aggregatedProgress.smoothedSpeed + 0.2 * parsed.speed
+                                    let snapshot = aggregatedProgress
+                                    progressLock.unlock()
+                                    onProgress(snapshot)
+                                }
+                            }
+
+                            process.waitUntilExit()
 
                             // Clean up temp file
                             try? FileManager.default.removeItem(atPath: tempPath)
 
-                            if proc.terminationStatus == 0 {
-                                continuation.resume(returning: [proc])
-                            } else if proc.terminationStatus == 20 {
+                            if process.terminationStatus == 0 {
+                                continuation.resume(returning: [process])
+                            } else if process.terminationStatus == 20 {
                                 continuation.resume(throwing: RsyncError.cancelled)
                             } else {
                                 let errorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
