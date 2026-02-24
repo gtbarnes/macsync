@@ -30,6 +30,14 @@ struct MacSyncApp: App {
                 } message: {
                     Text("MacSync needs Full Disk Access to read and sync files across your system. Please enable it in System Settings → Privacy & Security → Full Disk Access.")
                 }
+                .alert("Cannot Access Path", isPresented: $appState.showPathAccessAlert) {
+                    Button("Open System Settings") {
+                        PermissionService.shared.openFullDiskAccessSettings()
+                    }
+                    Button("OK", role: .cancel) { }
+                } message: {
+                    Text(appState.pathAccessAlertMessage)
+                }
         }
         .windowStyle(.automatic)
         .defaultSize(width: 1400, height: 900)

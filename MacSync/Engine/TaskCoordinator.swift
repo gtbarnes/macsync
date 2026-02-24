@@ -15,6 +15,19 @@ final class TaskCoordinator {
     func compareTask(for profile: SyncProfile) {
         guard let appState else { return }
 
+        // Check path permissions before starting comparison
+        let permService = PermissionService.shared
+        if let sourceError = permService.checkPathAccess(profile.sourcePath) {
+            appState.pathAccessAlertMessage = sourceError
+            appState.showPathAccessAlert = true
+            return
+        }
+        if let destError = permService.checkPathAccess(profile.destinationPath) {
+            appState.pathAccessAlertMessage = destError
+            appState.showPathAccessAlert = true
+            return
+        }
+
         // Check if there's already an active task for this profile
         if appState.activeTasks.contains(where: { $0.profile.id == profile.id && $0.phase.isActive }) {
             return // Already running

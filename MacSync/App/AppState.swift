@@ -30,6 +30,8 @@ final class AppState: ObservableObject {
     // MARK: - Permission Alerts
     @Published var showFullDiskAccessAlert: Bool = false
     @Published var permissionErrorMessage: String = ""
+    @Published var showPathAccessAlert: Bool = false
+    @Published var pathAccessAlertMessage: String = ""
 
     // MARK: - Sidebar Selection
     enum SidebarSelection: Hashable {
