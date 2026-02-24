@@ -53,8 +53,13 @@ final class TaskCoordinator {
                 let stream = await engine.preview(profile: profile)
                 for try await actions in stream {
                     guard !task.isCancelled else { break }
-                    task.previewResults = actions
-                    task.lastScannedPath = actions.last?.relativePath
+                    // Append only the delta to avoid O(n²) re-renders
+                    let previousCount = task.previewResults.count
+                    let newItems = actions.dropFirst(previousCount)
+                    if !newItems.isEmpty {
+                        task.previewResults.append(contentsOf: newItems)
+                        task.lastScannedPath = newItems.last?.relativePath
+                    }
                 }
                 if !task.isCancelled {
                     task.phase = .previewing
