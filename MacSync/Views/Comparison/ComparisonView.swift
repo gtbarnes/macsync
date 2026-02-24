@@ -70,12 +70,36 @@ struct ComparisonView: View {
     }
 
     private var comparingState: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 16) {
+            Spacer()
+
             ProgressView()
-                .controlSize(.large)
-            Text("Comparing files\u{2026}")
-                .font(.title3)
-                .foregroundStyle(.secondary)
+                .progressViewStyle(.linear)
+                .frame(maxWidth: 300)
+
+            if let task = currentTask {
+                Text("\(task.previewResults.count.formatted()) files scanned")
+                    .font(.title3)
+                    .monospacedDigit()
+                    .foregroundStyle(.secondary)
+                    .contentTransition(.numericText())
+                    .animation(.default, value: task.previewResults.count)
+
+                if let path = task.lastScannedPath {
+                    Text(path)
+                        .font(.caption)
+                        .foregroundStyle(.tertiary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                        .frame(maxWidth: 500)
+                }
+            } else {
+                Text("Comparing files\u{2026}")
+                    .font(.title3)
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
