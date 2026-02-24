@@ -26,6 +26,7 @@
 		9F6F713643A3A31DF72D43C3 /* ProfileEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C9EE5FEF599DB0504FB464 /* ProfileEditorView.swift */; };
 		A1D0ADB654AFAA80B8FA555A /* RsyncCommandBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAE8EFEE0DB98706990D8BB /* RsyncCommandBuilder.swift */; };
 		B398EE22068118B2DAF40219 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757F39971184EFF969640D83 /* KeychainService.swift */; };
+		B4A1C7E82F3D9A0B1E5C8D47 /* PermissionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7D3E91A4B8F2C6D0A3E7F51 /* PermissionService.swift */; };
 		BDEC1AB62D21406E5EAA4337 /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9AAB2AB676535B23D82891F /* HistoryStore.swift */; };
 		BF2F4E319186DA566E5CA01D /* MacSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA63FFF94A245A6758A566CC /* MacSyncApp.swift */; };
 		D3D4BB069AFE6245C57D9A51 /* FileAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536CBF0DE65273B09120C07 /* FileAction.swift */; };
@@ -60,6 +61,7 @@
 		72F2334A9C9A3EDECFB0FF6A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		757F39971184EFF969640D83 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		84C9C76B794B27D0E7818BA4 /* ComparisonTableRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonTableRepresentable.swift; sourceTree = "<group>"; };
+		C7D3E91A4B8F2C6D0A3E7F51 /* PermissionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionService.swift; sourceTree = "<group>"; };
 		858451A0EBD51A7F781CC57E /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		85B6DF0EF39B7C25C65431CA /* SyncProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProfile.swift; sourceTree = "<group>"; };
 		881401D6B017A9A9D1B007A9 /* MacSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -106,6 +108,7 @@
 			children = (
 				757F39971184EFF969640D83 /* KeychainService.swift */,
 				EE5B2AF115352B7CF0EF5640 /* NetworkShareMonitor.swift */,
+				C7D3E91A4B8F2C6D0A3E7F51 /* PermissionService.swift */,
 				5CE61B3BF1473D84232DCA0D /* ProfileStore.swift */,
 			);
 			path = Services;
@@ -318,6 +321,7 @@
 				85E2D288B19D5E3968DBB9B3 /* NetworkShareMonitor.swift in Sources */,
 				95BA10F1DF5E3F2328BB7273 /* PreviewBarView.swift in Sources */,
 				9F6F713643A3A31DF72D43C3 /* ProfileEditorView.swift in Sources */,
+				B4A1C7E82F3D9A0B1E5C8D47 /* PermissionService.swift in Sources */,
 				566459863D9AF815DF196453 /* ProfileStore.swift in Sources */,
 				95E2AAD0189830FE98A77F46 /* RsyncBinary.swift in Sources */,
 				A1D0ADB654AFAA80B8FA555A /* RsyncCommandBuilder.swift in Sources */,
