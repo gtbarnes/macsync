@@ -27,6 +27,10 @@ final class AppState: ObservableObject {
     @Published var showNewProfileSheet: Bool = false
     @Published var showEditProfileSheet: Bool = false
 
+    // MARK: - Permission Alerts
+    @Published var showFullDiskAccessAlert: Bool = false
+    @Published var permissionErrorMessage: String = ""
+
     // MARK: - Sidebar Selection
     enum SidebarSelection: Hashable {
         case profile(UUID)
@@ -72,6 +76,14 @@ final class AppState: ObservableObject {
         profiles = profileStore.loadProfiles()
         taskHistory = historyStore.loadHistory()
         taskCoordinator = TaskCoordinator(appState: self)
+    }
+
+    // MARK: - Permissions
+    func checkPermissionsOnLaunch() async {
+        let hasFDA = await PermissionService.shared.runFirstLaunchChecks()
+        if !hasFDA {
+            showFullDiskAccessAlert = true
+        }
     }
 
     // MARK: - Profile Actions

@@ -19,6 +19,17 @@ struct MacSyncApp: App {
                 .onAppear {
                     appState.initialize()
                 }
+                .task {
+                    await appState.checkPermissionsOnLaunch()
+                }
+                .alert("Full Disk Access Required", isPresented: $appState.showFullDiskAccessAlert) {
+                    Button("Open System Settings") {
+                        PermissionService.shared.openFullDiskAccessSettings()
+                    }
+                    Button("Later", role: .cancel) { }
+                } message: {
+                    Text("MacSync needs Full Disk Access to read and sync files across your system. Please enable it in System Settings → Privacy & Security → Full Disk Access.")
+                }
         }
         .windowStyle(.automatic)
         .defaultSize(width: 1400, height: 900)
