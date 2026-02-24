@@ -54,6 +54,7 @@ final class TaskCoordinator {
                 for try await actions in stream {
                     guard !task.isCancelled else { break }
                     task.previewResults = actions
+                    task.lastScannedPath = actions.last?.relativePath
                 }
                 if !task.isCancelled {
                     task.phase = .previewing
