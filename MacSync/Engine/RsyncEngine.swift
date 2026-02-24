@@ -33,6 +33,10 @@ actor RsyncEngine {
             process.standardOutput = stdoutPipe
             process.standardError = stderrPipe
 
+            // Serialize all pipe I/O on a dedicated serial queue to prevent data races.
+            // NSFileHandle's readabilityHandler can fire concurrently under heavy output,
+            // and terminationHandler runs on yet another queue.
+            let ioQueue = DispatchQueue(label: "com.macsync.preview.io")
             var accumulatedActions: [FileAction] = []
             var lineBuffer = ""
 
@@ -41,33 +45,37 @@ actor RsyncEngine {
                 guard !data.isEmpty else { return }
                 guard let chunk = String(data: data, encoding: .utf8) else { return }
 
-                lineBuffer += chunk
-                let lines = lineBuffer.components(separatedBy: "\n")
-                // Keep the last partial line in the buffer
-                lineBuffer = lines.last ?? ""
+                ioQueue.sync {
+                    lineBuffer += chunk
+                    let lines = lineBuffer.components(separatedBy: "\n")
+                    // Keep the last partial line in the buffer
+                    lineBuffer = lines.last ?? ""
 
-                // Parse all complete lines
-                let completeLines = lines.dropLast()
-                for line in completeLines {
-                    let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
-                    guard !trimmed.isEmpty else { continue }
+                    // Parse all complete lines
+                    let completeLines = lines.dropLast()
+                    for line in completeLines {
+                        let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
+                        guard !trimmed.isEmpty else { continue }
 
-                    let parsed = RsyncOutputParser.parseItemizedChanges(trimmed, syncMode: profile.syncMode)
-                    if !parsed.isEmpty {
-                        accumulatedActions.append(contentsOf: parsed)
-                        continuation.yield(accumulatedActions)
+                        let parsed = RsyncOutputParser.parseItemizedChanges(trimmed, syncMode: profile.syncMode)
+                        if !parsed.isEmpty {
+                            accumulatedActions.append(contentsOf: parsed)
+                            continuation.yield(accumulatedActions)
+                        }
                     }
                 }
             }
 
             process.terminationHandler = { proc in
-                // Process any remaining buffered line
-                let remaining = lineBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
-                if !remaining.isEmpty {
-                    let parsed = RsyncOutputParser.parseItemizedChanges(remaining, syncMode: profile.syncMode)
-                    if !parsed.isEmpty {
-                        accumulatedActions.append(contentsOf: parsed)
-                        continuation.yield(accumulatedActions)
+                ioQueue.sync {
+                    // Process any remaining buffered line
+                    let remaining = lineBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !remaining.isEmpty {
+                        let parsed = RsyncOutputParser.parseItemizedChanges(remaining, syncMode: profile.syncMode)
+                        if !parsed.isEmpty {
+                            accumulatedActions.append(contentsOf: parsed)
+                            continuation.yield(accumulatedActions)
+                        }
                     }
                 }
 
@@ -139,6 +147,8 @@ actor RsyncEngine {
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
 
+        // Serialize readability handler access to the mutable progress struct.
+        let ioQueue = DispatchQueue(label: "com.macsync.sync.single.io")
         var progress = SyncProgress()
         progress.startTime = Date()
 
@@ -148,10 +158,14 @@ actor RsyncEngine {
                   let line = String(data: data, encoding: .utf8) else { return }
 
             if let parsed = RsyncOutputParser.parseProgress(line) {
-                progress.transferredBytes = parsed.bytesTransferred
-                progress.currentSpeed = parsed.speed
-                progress.smoothedSpeed = 0.8 * progress.smoothedSpeed + 0.2 * parsed.speed
-                onProgress(progress)
+                ioQueue.sync {
+                    progress.transferredBytes = parsed.bytesTransferred
+                    progress.currentSpeed = parsed.speed
+                    progress.smoothedSpeed = 0.8 * progress.smoothedSpeed + 0.2 * parsed.speed
+                    let snapshot = progress
+                    // Call onProgress outside the lock scope is fine since snapshot is a value copy.
+                    onProgress(snapshot)
+                }
             }
         }
 

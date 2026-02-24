@@ -27,9 +27,14 @@ if [ ! -d "$APP_PATH" ]; then
 fi
 
 echo "=== Build Succeeded ==="
+
+echo "=== Deploying to local ~/Applications ==="
+cp -R "$APP_PATH" ~/Applications/
+echo "=== Deployed locally ==="
+
 echo "=== Deploying to laptop ==="
 scp -r "$APP_PATH" "$LAPTOP:$LAPTOP_PATH/"
-echo "=== Deployed $APP_NAME.app ==="
+echo "=== Deployed to $LAPTOP ==="
 
 echo "=== Pushing to GitHub ==="
 cd "$PROJECT_DIR"
