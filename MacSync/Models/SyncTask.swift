@@ -10,6 +10,7 @@ class SyncTask: ObservableObject, Identifiable {
     @Published var progress: SyncProgress = SyncProgress()
     @Published var errorMessage: String?
     @Published var diagnostics: DiagnosticState = DiagnosticState()
+    @Published var lastScannedPath: String?
     var rsyncProcesses: [Process] = []
     var isCancelled: Bool = false
 
