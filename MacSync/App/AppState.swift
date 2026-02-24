@@ -18,6 +18,9 @@ final class AppState: ObservableObject {
     // MARK: - Persistence
     let profileStore = ProfileStore()
 
+    // MARK: - Engine
+    var taskCoordinator: TaskCoordinator?
+
     // MARK: - View State
     @Published var showInspector: Bool = false
     @Published var showNewProfileSheet: Bool = false
@@ -66,6 +69,7 @@ final class AppState: ObservableObject {
         if savedThreads > 0 { globalThreadLimit = savedThreads }
         showInspector = UserDefaults.standard.bool(forKey: "showInspector")
         profiles = profileStore.loadProfiles()
+        taskCoordinator = TaskCoordinator(appState: self)
     }
 
     // MARK: - Profile Actions
@@ -93,10 +97,52 @@ final class AppState: ObservableObject {
         profiles.append(dup)
     }
 
-    // MARK: - Task Actions (stubs for now)
-    func startSelectedTask() {}
-    func pauseSelectedTask() {}
-    func stopSelectedTask() {}
+    // MARK: - Task Actions
+
+    func startSelectedTask() {
+        // If there's a selected task with preview ready, execute sync
+        if let task = selectedTask, task.phase == .previewing {
+            taskCoordinator?.executeSyncTask(task)
+            return
+        }
+        // If a profile's task exists and is previewing, execute sync
+        if let profile = selectedProfile,
+           let task = activeTask(for: profile.id),
+           task.phase == .previewing {
+            taskCoordinator?.executeSyncTask(task)
+            return
+        }
+        // Otherwise, start comparison for the selected profile
+        if let profile = selectedProfile {
+            taskCoordinator?.compareTask(for: profile)
+        }
+    }
+
+    func pauseSelectedTask() {
+        if let task = selectedTask {
+            if task.phase == .paused {
+                taskCoordinator?.resumeTask(id: task.id)
+            } else {
+                taskCoordinator?.pauseTask(id: task.id)
+            }
+        } else if let profile = selectedProfile,
+                  let task = activeTask(for: profile.id) {
+            if task.phase == .paused {
+                taskCoordinator?.resumeTask(id: task.id)
+            } else {
+                taskCoordinator?.pauseTask(id: task.id)
+            }
+        }
+    }
+
+    func stopSelectedTask() {
+        if let task = selectedTask {
+            taskCoordinator?.stopTask(id: task.id)
+        } else if let profile = selectedProfile,
+                  let task = activeTask(for: profile.id) {
+            taskCoordinator?.stopTask(id: task.id)
+        }
+    }
 
     func activeTask(for profileID: UUID?) -> SyncTask? {
         guard let profileID else { return nil }
