@@ -94,12 +94,16 @@ struct ComparisonView: View {
                         .foregroundStyle(.tertiary)
                 } else {
                     // Phase 2: rsync is streaming results
-                    Text("\(task.previewResults.count.formatted()) files scanned")
+                    Text("\(task.previewResults.count.formatted()) differences found")
                         .font(.title3)
                         .monospacedDigit()
                         .foregroundStyle(.secondary)
                         .contentTransition(.numericText())
                         .animation(.default, value: task.previewResults.count)
+
+                    if let start = task.comparisonStartTime {
+                        ElapsedTimeView(since: start)
+                    }
 
                     if let path = task.lastScannedPath {
                         Text(path)
