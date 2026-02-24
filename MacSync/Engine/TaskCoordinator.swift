@@ -56,10 +56,14 @@ final class TaskCoordinator {
                 let cmd = builder.buildPreviewCommand()
                 task.appendConsoleOutput("$ \(cmd.executablePath) \(cmd.allArguments.joined(separator: " "))\n\n")
 
-                let stream = await engine.preview(profile: profile) { [weak task] rawChunk in
-                    Task { @MainActor in
-                        task?.appendConsoleOutput(rawChunk)
-                    }
+                // Buffer raw output on background threads, flush to UI every 300ms.
+                // This prevents hundreds of thousands of queued MainActor tasks from
+                // consuming all available memory on large scans.
+                let buffer = task.consoleBuffer
+                task.startConsoleFlush()
+
+                let stream = await engine.preview(profile: profile) { rawChunk in
+                    buffer.append(rawChunk)
                 }
                 for try await actions in stream {
                     guard !task.isCancelled else { break }
@@ -71,10 +75,12 @@ final class TaskCoordinator {
                         task.lastScannedPath = newItems.last?.relativePath
                     }
                 }
+                task.stopConsoleFlush()
                 if !task.isCancelled {
                     task.phase = .previewing
                 }
             } catch {
+                task.stopConsoleFlush()
                 task.phase = .failed
                 task.errorMessage = error.localizedDescription
             }
@@ -105,6 +111,9 @@ final class TaskCoordinator {
         task.appendConsoleOutput("\n--- Sync Started ---\n")
         task.appendConsoleOutput("$ \(cmd.executablePath) \(cmd.allArguments.joined(separator: " "))\n\n")
 
+        let buffer = task.consoleBuffer
+        task.startConsoleFlush()
+
         Task {
             do {
                 let processes = try await engine.sync(
@@ -117,12 +126,11 @@ final class TaskCoordinator {
                             task.progress.smoothedSpeed = progress.smoothedSpeed
                         }
                     },
-                    onRawOutput: { [weak task] rawChunk in
-                        Task { @MainActor in
-                            task?.appendConsoleOutput(rawChunk)
-                        }
+                    onRawOutput: { rawChunk in
+                        buffer.append(rawChunk)
                     }
                 )
+                task.stopConsoleFlush()
                 task.rsyncProcesses = processes
                 task.phase = .completed
                 recordHistory(task: task, success: true)
@@ -133,9 +141,11 @@ final class TaskCoordinator {
                     appState.saveProfile(profile)
                 }
             } catch is CancellationError {
+                task.stopConsoleFlush()
                 task.phase = .failed
                 task.errorMessage = "Cancelled by user"
             } catch {
+                task.stopConsoleFlush()
                 task.phase = .failed
                 task.errorMessage = error.localizedDescription
                 recordHistory(task: task, success: false)
