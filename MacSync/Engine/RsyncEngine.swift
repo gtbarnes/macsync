@@ -23,7 +23,7 @@ actor RsyncEngine {
     /// Uses a blocking read loop on a background thread instead of readabilityHandler
     /// to avoid a race condition where terminationHandler can fire before
     /// readabilityHandler processes pipe data, causing 0 results.
-    func preview(profile: SyncProfile) -> AsyncThrowingStream<[FileAction], Error> {
+    func preview(profile: SyncProfile, onRawOutput: (@Sendable (String) -> Void)? = nil) -> AsyncThrowingStream<[FileAction], Error> {
         AsyncThrowingStream { continuation in
             let builder = RsyncCommandBuilder(profile: profile)
             let command = builder.buildPreviewCommand()
@@ -63,6 +63,7 @@ actor RsyncEngine {
                     let data = handle.availableData
                     if data.isEmpty { break }
                     if let chunk = String(data: data, encoding: .utf8) {
+                        onRawOutput?(chunk)
                         stderrLock.lock()
                         buffer += chunk
                         stderrLock.unlock()
@@ -92,6 +93,7 @@ actor RsyncEngine {
                     guard let chunk = String(data: data, encoding: .utf8) else { continue }
 
                     lineBuffer += chunk
+                    onRawOutput?(chunk)
                     let lines = lineBuffer.components(separatedBy: "\n")
                     lineBuffer = lines.last ?? ""
 
@@ -149,12 +151,13 @@ actor RsyncEngine {
     /// - Returns: Array of Process objects used for the sync
     func sync(
         profile: SyncProfile,
-        onProgress: @escaping @Sendable (SyncProgress) -> Void
+        onProgress: @escaping @Sendable (SyncProgress) -> Void,
+        onRawOutput: (@Sendable (String) -> Void)? = nil
     ) async throws -> [Process] {
         if profile.threadCount <= 1 {
-            return try await runSingleSync(profile: profile, onProgress: onProgress)
+            return try await runSingleSync(profile: profile, onProgress: onProgress, onRawOutput: onRawOutput)
         } else {
-            return try await runParallelSync(profile: profile, onProgress: onProgress)
+            return try await runParallelSync(profile: profile, onProgress: onProgress, onRawOutput: onRawOutput)
         }
     }
 
@@ -162,7 +165,8 @@ actor RsyncEngine {
 
     private func runSingleSync(
         profile: SyncProfile,
-        onProgress: @escaping @Sendable (SyncProgress) -> Void
+        onProgress: @escaping @Sendable (SyncProgress) -> Void,
+        onRawOutput: (@Sendable (String) -> Void)? = nil
     ) async throws -> [Process] {
         let builder = RsyncCommandBuilder(profile: profile)
         let command = builder.buildSyncCommand()
@@ -192,6 +196,8 @@ actor RsyncEngine {
                     if data.isEmpty { break }
                     guard let line = String(data: data, encoding: .utf8) else { continue }
 
+                    onRawOutput?(line)
+
                     if let parsed = RsyncOutputParser.parseProgress(line) {
                         progress.transferredBytes = parsed.bytesTransferred
                         progress.currentSpeed = parsed.speed
@@ -219,7 +225,8 @@ actor RsyncEngine {
 
     private func runParallelSync(
         profile: SyncProfile,
-        onProgress: @escaping @Sendable (SyncProgress) -> Void
+        onProgress: @escaping @Sendable (SyncProgress) -> Void,
+        onRawOutput: (@Sendable (String) -> Void)? = nil
     ) async throws -> [Process] {
         let entries = topLevelEntries(at: profile.sourcePath)
         guard !entries.isEmpty else {
@@ -267,6 +274,8 @@ actor RsyncEngine {
                                 let data = fileHandle.availableData
                                 if data.isEmpty { break }
                                 guard let line = String(data: data, encoding: .utf8) else { continue }
+
+                                onRawOutput?(line)
 
                                 if let parsed = RsyncOutputParser.parseProgress(line) {
                                     progressLock.lock()

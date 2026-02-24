@@ -24,6 +24,7 @@ final class AppState: ObservableObject {
 
     // MARK: - View State
     @Published var showInspector: Bool = false
+    @Published var showConsole: Bool = false
     @Published var showNewProfileSheet: Bool = false
     @Published var showEditProfileSheet: Bool = false
 

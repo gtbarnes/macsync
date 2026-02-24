@@ -32,6 +32,19 @@ struct ComparisonView: View {
                     ComparisonTableRepresentable(actions: actions)
                 }
 
+                // MARK: - Console Panel
+                if appState.showConsole {
+                    Divider()
+                    if let task = currentTask {
+                        ConsoleView(output: task.consoleOutput, onClear: { task.consoleOutput = "" })
+                            .frame(minHeight: 80, idealHeight: 200, maxHeight: 400)
+                            .id(task.id)
+                    } else {
+                        ConsoleView(output: "", onClear: {})
+                            .frame(minHeight: 80, idealHeight: 200, maxHeight: 400)
+                    }
+                }
+
                 // MARK: - Preview Bar
                 Divider()
                 PreviewBarView(actions: actions, task: currentTask)

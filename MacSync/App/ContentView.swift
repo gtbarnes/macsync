@@ -52,6 +52,15 @@ struct ContentView: View {
 
         ToolbarItem(placement: .automatic) {
             Button {
+                appState.showConsole.toggle()
+            } label: {
+                Label("Console", systemImage: "terminal")
+            }
+            .help("Toggle Console")
+        }
+
+        ToolbarItem(placement: .automatic) {
+            Button {
                 appState.showInspector.toggle()
             } label: {
                 Label("Inspector", systemImage: "sidebar.right")

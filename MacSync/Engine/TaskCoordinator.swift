@@ -51,7 +51,16 @@ final class TaskCoordinator {
             }
 
             do {
-                let stream = await engine.preview(profile: profile)
+                // Log the rsync command to the console
+                let builder = RsyncCommandBuilder(profile: profile)
+                let cmd = builder.buildPreviewCommand()
+                task.appendConsoleOutput("$ \(cmd.executablePath) \(cmd.allArguments.joined(separator: " "))\n\n")
+
+                let stream = await engine.preview(profile: profile) { [weak task] rawChunk in
+                    Task { @MainActor in
+                        task?.appendConsoleOutput(rawChunk)
+                    }
+                }
                 for try await actions in stream {
                     guard !task.isCancelled else { break }
                     // Append only the delta to avoid O(n²) re-renders
@@ -90,16 +99,30 @@ final class TaskCoordinator {
             $0.sourceSize ?? $0.destSize
         }.reduce(0, +)
 
+        // Log the sync command to the console
+        let builder = RsyncCommandBuilder(profile: task.profile)
+        let cmd = builder.buildSyncCommand()
+        task.appendConsoleOutput("\n--- Sync Started ---\n")
+        task.appendConsoleOutput("$ \(cmd.executablePath) \(cmd.allArguments.joined(separator: " "))\n\n")
+
         Task {
             do {
-                let processes = try await engine.sync(profile: task.profile) { [weak task] progress in
-                    Task { @MainActor in
-                        guard let task else { return }
-                        task.progress.transferredBytes = progress.transferredBytes
-                        task.progress.currentSpeed = progress.currentSpeed
-                        task.progress.smoothedSpeed = progress.smoothedSpeed
+                let processes = try await engine.sync(
+                    profile: task.profile,
+                    onProgress: { [weak task] progress in
+                        Task { @MainActor in
+                            guard let task else { return }
+                            task.progress.transferredBytes = progress.transferredBytes
+                            task.progress.currentSpeed = progress.currentSpeed
+                            task.progress.smoothedSpeed = progress.smoothedSpeed
+                        }
+                    },
+                    onRawOutput: { [weak task] rawChunk in
+                        Task { @MainActor in
+                            task?.appendConsoleOutput(rawChunk)
+                        }
                     }
-                }
+                )
                 task.rsyncProcesses = processes
                 task.phase = .completed
                 recordHistory(task: task, success: true)
