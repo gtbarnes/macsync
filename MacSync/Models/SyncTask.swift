@@ -11,6 +11,7 @@ class SyncTask: ObservableObject, Identifiable {
     @Published var errorMessage: String?
     @Published var diagnostics: DiagnosticState = DiagnosticState()
     @Published var lastScannedPath: String?
+    var comparisonStartTime: Date?
     var rsyncProcesses: [Process] = []
     var isCancelled: Bool = false
 

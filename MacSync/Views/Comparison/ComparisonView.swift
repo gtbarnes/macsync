@@ -78,20 +78,37 @@ struct ComparisonView: View {
                 .frame(maxWidth: 300)
 
             if let task = currentTask {
-                Text("\(task.previewResults.count.formatted()) files scanned")
-                    .font(.title3)
-                    .monospacedDigit()
-                    .foregroundStyle(.secondary)
-                    .contentTransition(.numericText())
-                    .animation(.default, value: task.previewResults.count)
+                if task.previewResults.isEmpty {
+                    // Phase 1: rsync is building the file list (no output yet).
+                    // For large/network volumes this can take several minutes.
+                    Text("Building file list\u{2026}")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
 
-                if let path = task.lastScannedPath {
-                    Text(path)
+                    if let start = task.comparisonStartTime {
+                        ElapsedTimeView(since: start)
+                    }
+
+                    Text("Large or network volumes may take several minutes")
                         .font(.caption)
                         .foregroundStyle(.tertiary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .frame(maxWidth: 500)
+                } else {
+                    // Phase 2: rsync is streaming results
+                    Text("\(task.previewResults.count.formatted()) files scanned")
+                        .font(.title3)
+                        .monospacedDigit()
+                        .foregroundStyle(.secondary)
+                        .contentTransition(.numericText())
+                        .animation(.default, value: task.previewResults.count)
+
+                    if let path = task.lastScannedPath {
+                        Text(path)
+                            .font(.caption)
+                            .foregroundStyle(.tertiary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .frame(maxWidth: 500)
+                    }
                 }
             } else {
                 Text("Comparing files\u{2026}")
@@ -102,6 +119,39 @@ struct ComparisonView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+}
+
+// MARK: - Elapsed Time View
+
+/// Displays a live-updating elapsed time since a given start date.
+struct ElapsedTimeView: View {
+    let since: Date
+
+    @State private var elapsed: TimeInterval = 0
+    private let timer = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    var body: some View {
+        Text(formattedElapsed)
+            .font(.caption)
+            .monospacedDigit()
+            .foregroundStyle(.tertiary)
+            .onReceive(timer) { _ in
+                elapsed = Date().timeIntervalSince(since)
+            }
+            .onAppear {
+                elapsed = Date().timeIntervalSince(since)
+            }
+    }
+
+    private var formattedElapsed: String {
+        let minutes = Int(elapsed) / 60
+        let seconds = Int(elapsed) % 60
+        if minutes > 0 {
+            return "Elapsed: \(minutes)m \(seconds)s"
+        } else {
+            return "Elapsed: \(seconds)s"
+        }
     }
 }
 

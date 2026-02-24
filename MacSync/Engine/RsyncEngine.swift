@@ -50,9 +50,36 @@ actor RsyncEngine {
                 return
             }
 
+            // Drain stderr on a separate thread to prevent pipe-buffer deadlock.
+            // If rsync writes enough warnings (e.g., permission errors on many files)
+            // to fill the 64KB pipe buffer, it will block — while we're blocked
+            // waiting for stdout. Draining stderr concurrently prevents this.
+            var stderrOutput = ""
+            let stderrLock = NSLock()
+            DispatchQueue.global(qos: .utility).async {
+                var buffer = ""
+                let handle = stderrPipe.fileHandleForReading
+                while true {
+                    let data = handle.availableData
+                    if data.isEmpty { break }
+                    if let chunk = String(data: data, encoding: .utf8) {
+                        stderrLock.lock()
+                        buffer += chunk
+                        stderrLock.unlock()
+                    }
+                }
+                stderrLock.lock()
+                stderrOutput = buffer
+                stderrLock.unlock()
+            }
+
             // Read stdout on a background thread. availableData blocks until
             // data arrives or the pipe closes (EOF). This single-threaded approach
             // guarantees all pipe data is consumed before we check the exit status.
+            //
+            // NOTE: For large volumes (especially NAS/SMB), openrsync may take
+            // several minutes to build the file list before producing ANY stdout.
+            // This is normal — the stream will remain open during that time.
             DispatchQueue.global(qos: .userInitiated).async {
                 var accumulatedActions: [FileAction] = []
                 var lineBuffer = ""
@@ -97,8 +124,9 @@ actor RsyncEngine {
                 if process.terminationStatus == 0 {
                     continuation.finish()
                 } else {
-                    let errorData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
-                    let errorMessage = String(data: errorData, encoding: .utf8) ?? "Unknown error"
+                    stderrLock.lock()
+                    let errorMessage = stderrOutput.isEmpty ? "Unknown error" : stderrOutput
+                    stderrLock.unlock()
 
                     if errorMessage.contains("connection") || errorMessage.contains("network") {
                         continuation.finish(throwing: RsyncError.networkDisconnected)

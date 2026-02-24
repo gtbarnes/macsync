@@ -16,9 +16,10 @@ struct RsyncCommandBuilder {
 
     // MARK: - Public Build Methods
 
-    /// Build a dry-run preview command with itemized changes output
+    /// Build a dry-run preview command with itemized changes output.
+    /// Uses `-av` without `-z` (compression is useless in dry-run mode and adds overhead).
     func buildPreviewCommand() -> RsyncCommand {
-        var args = baseFlags()
+        var args = ["-av", "--human-readable"]
         args += ["--dry-run", "--itemize-changes"]
         args += modeFlags()
         args += deletionFlags()

@@ -22,6 +22,7 @@ final class TaskCoordinator {
 
         let task = SyncTask(profile: profile)
         task.phase = .comparing
+        task.comparisonStartTime = Date()
         appState.activeTasks.append(task)
         appState.sidebarSelection = .activeTask(task.id)
 
