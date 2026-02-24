@@ -7,14 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0740C2CEA79F136FDCA93ABB /* ComparisonTableRepresentable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84C9C76B794B27D0E7818BA4 /* ComparisonTableRepresentable.swift */; };
 		1E7658B5DF2856C0E724D65C /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEA0C83B4233F5EC76442CE6 /* ContentView.swift */; };
 		1F3EDE111B1B30E48678ECDB /* ComparisonView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20F0BF7DBAE38A1958D1076D /* ComparisonView.swift */; };
 		320DD67FC1CADA07E5DD0CBF /* SyncTask.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06CB4583B3AD49C52ADDBAD2 /* SyncTask.swift */; };
 		3393830234CB2F5173731F51 /* SyncProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA0F5026FEB1D06DD3AD9B46 /* SyncProgress.swift */; };
 		4A6931ED5DADEAB3D77022F9 /* MacSyncTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4648CB8D8CB732022BA0FE39 /* MacSyncTests.swift */; };
+		566459863D9AF815DF196453 /* ProfileStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CE61B3BF1473D84232DCA0D /* ProfileStore.swift */; };
 		5B2745B714A6114C7024E753 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858451A0EBD51A7F781CC57E /* SidebarView.swift */; };
 		695706B7E09B5E612195011B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F2334A9C9A3EDECFB0FF6A /* SettingsView.swift */; };
 		94C985E669C2AA5D2C69C514 /* FilterConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4D4410474537B63D04AB76 /* FilterConfig.swift */; };
+		95BA10F1DF5E3F2328BB7273 /* PreviewBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D5F9816CD901D369E0549E /* PreviewBarView.swift */; };
+		9F6F713643A3A31DF72D43C3 /* ProfileEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C9EE5FEF599DB0504FB464 /* ProfileEditorView.swift */; };
 		BF2F4E319186DA566E5CA01D /* MacSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA63FFF94A245A6758A566CC /* MacSyncApp.swift */; };
 		D3D4BB069AFE6245C57D9A51 /* FileAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536CBF0DE65273B09120C07 /* FileAction.swift */; };
 		E0431223A053A601482421B3 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04011B39800D764A57DF67E3 /* InspectorView.swift */; };
@@ -36,11 +40,15 @@
 		036F34152042EFAA5BD177CA /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		04011B39800D764A57DF67E3 /* InspectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InspectorView.swift; sourceTree = "<group>"; };
 		06CB4583B3AD49C52ADDBAD2 /* SyncTask.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncTask.swift; sourceTree = "<group>"; };
+		08D5F9816CD901D369E0549E /* PreviewBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewBarView.swift; sourceTree = "<group>"; };
 		20F0BF7DBAE38A1958D1076D /* ComparisonView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonView.swift; sourceTree = "<group>"; };
 		3F4D4410474537B63D04AB76 /* FilterConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterConfig.swift; sourceTree = "<group>"; };
 		458B339426D4DB3139A0E4B7 /* MacSync.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MacSync.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4648CB8D8CB732022BA0FE39 /* MacSyncTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacSyncTests.swift; sourceTree = "<group>"; };
+		59C9EE5FEF599DB0504FB464 /* ProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorView.swift; sourceTree = "<group>"; };
+		5CE61B3BF1473D84232DCA0D /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
 		72F2334A9C9A3EDECFB0FF6A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		84C9C76B794B27D0E7818BA4 /* ComparisonTableRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonTableRepresentable.swift; sourceTree = "<group>"; };
 		858451A0EBD51A7F781CC57E /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		85B6DF0EF39B7C25C65431CA /* SyncProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProfile.swift; sourceTree = "<group>"; };
 		881401D6B017A9A9D1B007A9 /* MacSyncTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MacSyncTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -69,9 +77,18 @@
 			path = Inspector;
 			sourceTree = "<group>";
 		};
+		1AEA848648C35667C41E8738 /* ProfileEditor */ = {
+			isa = PBXGroup;
+			children = (
+				59C9EE5FEF599DB0504FB464 /* ProfileEditorView.swift */,
+			);
+			path = ProfileEditor;
+			sourceTree = "<group>";
+		};
 		430B44E06E357B5D1AFAE12F /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				5CE61B3BF1473D84232DCA0D /* ProfileStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -81,6 +98,7 @@
 			children = (
 				A69512F7C78CF216F2F82052 /* Comparison */,
 				0BD3320655D4C1EF81695C6C /* Inspector */,
+				1AEA848648C35667C41E8738 /* ProfileEditor */,
 				F393170E19ABA7C47627732F /* Settings */,
 				496E0A113305BA644521F85E /* Sidebar */,
 			);
@@ -136,7 +154,9 @@
 		A69512F7C78CF216F2F82052 /* Comparison */ = {
 			isa = PBXGroup;
 			children = (
+				84C9C76B794B27D0E7818BA4 /* ComparisonTableRepresentable.swift */,
 				20F0BF7DBAE38A1958D1076D /* ComparisonView.swift */,
+				08D5F9816CD901D369E0549E /* PreviewBarView.swift */,
 			);
 			path = Comparison;
 			sourceTree = "<group>";
@@ -254,12 +274,16 @@
 			buildActionMask = 2147483647;
 			files = (
 				ECAAE89E9FB5681C3D136382 /* AppState.swift in Sources */,
+				0740C2CEA79F136FDCA93ABB /* ComparisonTableRepresentable.swift in Sources */,
 				1F3EDE111B1B30E48678ECDB /* ComparisonView.swift in Sources */,
 				1E7658B5DF2856C0E724D65C /* ContentView.swift in Sources */,
 				D3D4BB069AFE6245C57D9A51 /* FileAction.swift in Sources */,
 				94C985E669C2AA5D2C69C514 /* FilterConfig.swift in Sources */,
 				E0431223A053A601482421B3 /* InspectorView.swift in Sources */,
 				BF2F4E319186DA566E5CA01D /* MacSyncApp.swift in Sources */,
+				95BA10F1DF5E3F2328BB7273 /* PreviewBarView.swift in Sources */,
+				9F6F713643A3A31DF72D43C3 /* ProfileEditorView.swift in Sources */,
+				566459863D9AF815DF196453 /* ProfileStore.swift in Sources */,
 				695706B7E09B5E612195011B /* SettingsView.swift in Sources */,
 				5B2745B714A6114C7024E753 /* SidebarView.swift in Sources */,
 				F858FC4DA48D7EF5E49D27F0 /* SyncProfile.swift in Sources */,

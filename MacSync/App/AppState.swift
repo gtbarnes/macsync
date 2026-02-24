@@ -15,6 +15,9 @@ struct CompletedTask: Identifiable, Codable {
 
 @MainActor
 final class AppState: ObservableObject {
+    // MARK: - Persistence
+    let profileStore = ProfileStore()
+
     // MARK: - View State
     @Published var showInspector: Bool = false
     @Published var showNewProfileSheet: Bool = false
@@ -62,6 +65,7 @@ final class AppState: ObservableObject {
         let savedThreads = UserDefaults.standard.integer(forKey: "globalThreadLimit")
         if savedThreads > 0 { globalThreadLimit = savedThreads }
         showInspector = UserDefaults.standard.bool(forKey: "showInspector")
+        profiles = profileStore.loadProfiles()
     }
 
     // MARK: - Profile Actions
@@ -71,10 +75,12 @@ final class AppState: ObservableObject {
         } else {
             profiles.append(profile)
         }
+        profileStore.saveProfiles(profiles)
     }
 
     func deleteProfile(_ profile: SyncProfile) {
         profiles.removeAll { $0.id == profile.id }
+        profileStore.saveProfiles(profiles)
     }
 
     func duplicateProfile(_ profile: SyncProfile) {

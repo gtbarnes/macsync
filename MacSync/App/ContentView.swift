@@ -18,8 +18,12 @@ struct ContentView: View {
         }
         .navigationSplitViewStyle(.balanced)
         .sheet(isPresented: $appState.showNewProfileSheet) {
-            Text("Profile Editor - Coming Soon")
-                .frame(width: 500, height: 400)
+            ProfileEditorView()
+                .environmentObject(appState)
+        }
+        .sheet(isPresented: $appState.showEditProfileSheet) {
+            ProfileEditorView()
+                .environmentObject(appState)
         }
     }
 
