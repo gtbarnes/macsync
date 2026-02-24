@@ -17,6 +17,7 @@ struct CompletedTask: Identifiable, Codable {
 final class AppState: ObservableObject {
     // MARK: - Persistence
     let profileStore = ProfileStore()
+    let historyStore = HistoryStore()
 
     // MARK: - Engine
     var taskCoordinator: TaskCoordinator?
@@ -69,6 +70,7 @@ final class AppState: ObservableObject {
         if savedThreads > 0 { globalThreadLimit = savedThreads }
         showInspector = UserDefaults.standard.bool(forKey: "showInspector")
         profiles = profileStore.loadProfiles()
+        taskHistory = historyStore.loadHistory()
         taskCoordinator = TaskCoordinator(appState: self)
     }
 

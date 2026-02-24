@@ -29,6 +29,10 @@ targets:
         CODE_SIGN_STYLE: Automatic
         ENABLE_APP_SANDBOX: "NO"
         SWIFT_EMIT_LOC_STRINGS: "YES"
+        OTHER_LDFLAGS:
+          - "-framework"
+          - "NetFS"
+          - "-lsqlite3"
     entitlements:
       path: MacSync/Resources/MacSync.entitlements
   MacSyncTests:

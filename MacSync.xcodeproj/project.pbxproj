@@ -18,12 +18,15 @@
 		5B2745B714A6114C7024E753 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 858451A0EBD51A7F781CC57E /* SidebarView.swift */; };
 		660F25ABFB19D2181532C670 /* TaskCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4B4EAB7235EB4FD9276C0D /* TaskCoordinator.swift */; };
 		695706B7E09B5E612195011B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72F2334A9C9A3EDECFB0FF6A /* SettingsView.swift */; };
+		85E2D288B19D5E3968DBB9B3 /* NetworkShareMonitor.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE5B2AF115352B7CF0EF5640 /* NetworkShareMonitor.swift */; };
 		94C985E669C2AA5D2C69C514 /* FilterConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3F4D4410474537B63D04AB76 /* FilterConfig.swift */; };
 		95BA10F1DF5E3F2328BB7273 /* PreviewBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08D5F9816CD901D369E0549E /* PreviewBarView.swift */; };
 		95E2AAD0189830FE98A77F46 /* RsyncBinary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9E800CAF1533608F0FB4FEE4 /* RsyncBinary.swift */; };
 		9E04BCEA1CE468D0976D5580 /* RsyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43A8A62134C2132358C463E3 /* RsyncEngine.swift */; };
 		9F6F713643A3A31DF72D43C3 /* ProfileEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C9EE5FEF599DB0504FB464 /* ProfileEditorView.swift */; };
 		A1D0ADB654AFAA80B8FA555A /* RsyncCommandBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EAE8EFEE0DB98706990D8BB /* RsyncCommandBuilder.swift */; };
+		B398EE22068118B2DAF40219 /* KeychainService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 757F39971184EFF969640D83 /* KeychainService.swift */; };
+		BDEC1AB62D21406E5EAA4337 /* HistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = F9AAB2AB676535B23D82891F /* HistoryStore.swift */; };
 		BF2F4E319186DA566E5CA01D /* MacSyncApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA63FFF94A245A6758A566CC /* MacSyncApp.swift */; };
 		D3D4BB069AFE6245C57D9A51 /* FileAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = F536CBF0DE65273B09120C07 /* FileAction.swift */; };
 		E0431223A053A601482421B3 /* InspectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04011B39800D764A57DF67E3 /* InspectorView.swift */; };
@@ -55,6 +58,7 @@
 		59C9EE5FEF599DB0504FB464 /* ProfileEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditorView.swift; sourceTree = "<group>"; };
 		5CE61B3BF1473D84232DCA0D /* ProfileStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileStore.swift; sourceTree = "<group>"; };
 		72F2334A9C9A3EDECFB0FF6A /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		757F39971184EFF969640D83 /* KeychainService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainService.swift; sourceTree = "<group>"; };
 		84C9C76B794B27D0E7818BA4 /* ComparisonTableRepresentable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComparisonTableRepresentable.swift; sourceTree = "<group>"; };
 		858451A0EBD51A7F781CC57E /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
 		85B6DF0EF39B7C25C65431CA /* SyncProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProfile.swift; sourceTree = "<group>"; };
@@ -65,7 +69,9 @@
 		BA0F5026FEB1D06DD3AD9B46 /* SyncProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncProgress.swift; sourceTree = "<group>"; };
 		DEA0C83B4233F5EC76442CE6 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		EA63FFF94A245A6758A566CC /* MacSyncApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacSyncApp.swift; sourceTree = "<group>"; };
+		EE5B2AF115352B7CF0EF5640 /* NetworkShareMonitor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NetworkShareMonitor.swift; sourceTree = "<group>"; };
 		F536CBF0DE65273B09120C07 /* FileAction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileAction.swift; sourceTree = "<group>"; };
+		F9AAB2AB676535B23D82891F /* HistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryStore.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -98,6 +104,8 @@
 		430B44E06E357B5D1AFAE12F /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				757F39971184EFF969640D83 /* KeychainService.swift */,
+				EE5B2AF115352B7CF0EF5640 /* NetworkShareMonitor.swift */,
 				5CE61B3BF1473D84232DCA0D /* ProfileStore.swift */,
 			);
 			path = Services;
@@ -123,6 +131,14 @@
 			path = Sidebar;
 			sourceTree = "<group>";
 		};
+		4CB8B403AE01BFAAA3ACB34B /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				F9AAB2AB676535B23D82891F /* HistoryStore.swift */,
+			);
+			path = Database;
+			sourceTree = "<group>";
+		};
 		5C8997A30FC5192591C6797D /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -136,6 +152,7 @@
 			isa = PBXGroup;
 			children = (
 				00F9E6BFBBE292BAE5ADF93D /* App */,
+				4CB8B403AE01BFAAA3ACB34B /* Database */,
 				A7956A4620B1FA2C1D5E3DAB /* Engine */,
 				AD4D45717839248B5A45986C /* Models */,
 				430B44E06E357B5D1AFAE12F /* Services */,
@@ -294,8 +311,11 @@
 				1E7658B5DF2856C0E724D65C /* ContentView.swift in Sources */,
 				D3D4BB069AFE6245C57D9A51 /* FileAction.swift in Sources */,
 				94C985E669C2AA5D2C69C514 /* FilterConfig.swift in Sources */,
+				BDEC1AB62D21406E5EAA4337 /* HistoryStore.swift in Sources */,
 				E0431223A053A601482421B3 /* InspectorView.swift in Sources */,
+				B398EE22068118B2DAF40219 /* KeychainService.swift in Sources */,
 				BF2F4E319186DA566E5CA01D /* MacSyncApp.swift in Sources */,
+				85E2D288B19D5E3968DBB9B3 /* NetworkShareMonitor.swift in Sources */,
 				95BA10F1DF5E3F2328BB7273 /* PreviewBarView.swift in Sources */,
 				9F6F713643A3A31DF72D43C3 /* ProfileEditorView.swift in Sources */,
 				566459863D9AF815DF196453 /* ProfileStore.swift in Sources */,
@@ -395,6 +415,11 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					NetFS,
+					"-lsqlite3",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.macsync.app;
 				PRODUCT_NAME = MacSync;
 				SDKROOT = macosx;
@@ -515,6 +540,11 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = (
+					"-framework",
+					NetFS,
+					"-lsqlite3",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.macsync.app;
 				PRODUCT_NAME = MacSync;
 				SDKROOT = macosx;

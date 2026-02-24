@@ -16,7 +16,7 @@ final class TaskCoordinator {
         guard let appState else { return }
 
         // Check if there's already an active task for this profile
-        if let existing = appState.activeTasks.first(where: { $0.profile.id == profile.id && $0.phase.isActive }) {
+        if appState.activeTasks.contains(where: { $0.profile.id == profile.id && $0.phase.isActive }) {
             return // Already running
         }
 
@@ -149,5 +149,6 @@ final class TaskCoordinator {
             success: success
         )
         appState.taskHistory.insert(entry, at: 0)
+        appState.historyStore.save(entry)
     }
 }
